@@ -3,8 +3,14 @@ using Newtonsoft.Json.Linq;
 
 namespace TheMinecraftAPI.Vanilla;
 
-public class MinecraftVersions
+public static class MinecraftResources
 {
+    /// <summary>
+    /// Retrieves the available versions of Minecraft.
+    /// </summary>
+    /// <param name="filter">Optional filter for a specific version.</param>
+    /// <param name="snapshots">Indicates if only snapshot versions should be included.</param>
+    /// <returns>An object containing the list of available versions.</returns>
     public static async Task<object> GetVersions(Version? filter = null, bool snapshots = false)
     {
         using AdvancedNetworkClient httpClient = new();
@@ -19,15 +25,14 @@ public class MinecraftVersions
         string latestRelease = latest["release"]?.ToString() ?? throw new Exception("Failed to get Minecraft versions");
         string latestSnapshot = latest["snapshot"]?.ToString() ?? throw new Exception("Failed to get Minecraft versions");
 
-        List<object> releasesList = [];
-        List<object> snapshotsList = [];
+        List<object> releasesList = new();
+        List<object> snapshotsList = new();
 
         foreach (var jToken in versions)
         {
             var version = (JObject)jToken;
             string id = version["id"]?.ToString() ?? throw new Exception("Failed to get Minecraft versions");
             string type = version["type"]?.ToString() ?? throw new Exception("Failed to get Minecraft versions");
-            string url = version["url"]?.ToString() ?? throw new Exception("Failed to get Minecraft versions");
             DateTime time = DateTime.Parse(version["time"]?.ToString() ?? throw new Exception("Failed to get Minecraft versions"));
             DateTime releaseTime = DateTime.Parse(version["releaseTime"]?.ToString() ?? throw new Exception("Failed to get Minecraft versions"));
             bool isSnapshot = type == "snapshot";
