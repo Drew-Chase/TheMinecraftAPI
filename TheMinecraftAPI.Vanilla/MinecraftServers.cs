@@ -27,22 +27,10 @@ public class MinecraftServers
     /// <returns>A task representing the asynchronous operation. The task result is an object containing the server status information.</returns>
     public async Task<object> GetServerStatusAsync()
     {
-        try
-        {
-            using TcpClient tcpClient = InitialiseConnection(1, TimeSpan.FromSeconds(5));
-            await using NetworkStream stream = tcpClient.GetStream();
-            SendStatusRequest(stream);
-            return await ReceiveStatusRequestAsync(stream);
-        }
-        catch (Exception ex)
-        {
-            return new
-            {
-                Status = "Unknown",
-                Ip = Address,
-                Name = ex.Message
-            };
-        }
+        using TcpClient tcpClient = InitialiseConnection(1, TimeSpan.FromSeconds(5));
+        await using NetworkStream stream = tcpClient.GetStream();
+        SendStatusRequest(stream);
+        return await ReceiveStatusRequestAsync(stream);
     }
 
     /// <summary>
