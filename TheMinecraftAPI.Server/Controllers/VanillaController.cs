@@ -37,7 +37,7 @@ public class VanillaController : ControllerBase
     [HttpGet("versions"), ResponseCache(Duration = 3600)] // Cache for 1 hour
     public async Task<IActionResult> GetVersionsAsync([FromQuery(Name = "major_version")] Version? majorVersion = null, [FromQuery] bool snapshots = false)
     {
-        var response = await MinecraftVersions.GetVersions(majorVersion, snapshots);
+        var response = await MinecraftResources.GetVersions(majorVersion, snapshots);
         return Ok(response);
     }
 }
