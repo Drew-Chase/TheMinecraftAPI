@@ -29,7 +29,7 @@ public class VanillaController : ControllerBase
             {
                 ip = url,
                 port = port,
-                error = e.Message
+                message = e.Message,
             });
         }
     }
@@ -39,5 +39,39 @@ public class VanillaController : ControllerBase
     {
         var response = await MinecraftResources.GetVersions(majorVersion, snapshots);
         return Ok(response);
+    }
+
+    [HttpGet("java/{operatingSystem?}"), ResponseCache(Duration = 3600)] // Cache for 1 hour
+    public async Task<IActionResult> GetJavaAsync([FromRoute] string operatingSystem = "")
+    {
+        string[] supportedPlatforms = await MinecraftResources.GetSupportedPlatforms();
+
+        if (operatingSystem == "platforms")
+        {
+            return Ok(supportedPlatforms);
+        }
+
+        if (!supportedPlatforms.Contains(operatingSystem))
+        {
+            return BadRequest(new
+            {
+                message = $"Invalid operating system: '{operatingSystem}'",
+                supported_platforms = supportedPlatforms,
+            });
+        }
+
+        try
+        {
+            var response = await MinecraftResources.GetJreBinaries(operatingSystem);
+            return Ok(response);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(new
+            {
+                message = e.Message,
+                stacktrace = e.StackTrace,
+            });
+        }
     }
 }
