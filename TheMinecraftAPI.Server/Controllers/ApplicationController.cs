@@ -6,7 +6,7 @@ using TheMinecraftAPI.Server.Data;
 namespace TheMinecraftAPI.Server.Controllers;
 
 [Produces("application/json")]
-[Route("/api")]
+[Route("/")]
 [ApiController]
 public class ApplicationController : ControllerBase
 {
