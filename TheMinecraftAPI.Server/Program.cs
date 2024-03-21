@@ -1,8 +1,8 @@
-﻿using Serilog;
-using Serilog.Events;
-using System.IO.Compression;
+﻿using System.IO.Compression;
 using System.Net;
 using Microsoft.AspNetCore.HttpOverrides;
+using Serilog;
+using Serilog.Events;
 using TheMinecraftAPI.Server.Data;
 
 namespace TheMinecraftAPI.Server;
@@ -21,14 +21,12 @@ public static class Program
         builder.Services.AddSwaggerGen();
         builder.Services.AddSerilog();
         builder.Services.AddMvc(options => options.EnableEndpointRouting = false);
-        builder.Services.AddRazorPages().WithRazorPagesRoot("/Pages");
 
 #if RELEASE
         builder.Services.Configure<ForwardedHeadersOptions>(options => { options.KnownProxies.Add(IPAddress.Parse("10.0.0.100")); });
 #endif
 
         var app = builder.Build();
-
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
@@ -49,8 +47,6 @@ public static class Program
 
         app.UseRouting();
         app.MapControllers();
-        app.MapRazorPages();
-        app.UseAuthorization();
         app.UseDefaultFiles();
         app.UseStaticFiles();
 
