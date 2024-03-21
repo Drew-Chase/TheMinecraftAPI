@@ -328,4 +328,97 @@ public static class MinecraftResources
             releases = releasesList,
         };
     }
+
+    /// <summary>
+    /// Retrieves the assets for a specified Minecraft version.
+    /// </summary>
+    /// <param name="version">The Minecraft version for which to retrieve the assets.</param>
+    /// <returns>An array of objects containing information about the assets if successful; otherwise, throws an exception.</returns>
+    public static async Task<object[]> GetAssets(string version)
+    {
+        JObject versionManifest = await GetVersionManifest(version);
+        string assetUrl = versionManifest["assetIndex"]?["url"]?.ToString() ?? throw new Exception("Failed to get Minecraft asset manifest");
+        using AdvancedNetworkClient httpClient = new();
+        JObject? assetManifest = await httpClient.GetAsJson(assetUrl);
+        if (assetManifest is null) throw new Exception("Failed to get Minecraft asset manifest");
+        List<object> results = new();
+        foreach (var (key, value) in assetManifest["objects"] as JObject ?? throw new Exception("Failed to get Minecraft asset manifest"))
+        {
+            if (value is null) continue;
+            string hash = value["hash"]?.ToString() ?? throw new Exception("Failed to get Minecraft asset manifest");
+            string size = value["size"]?.ToString() ?? throw new Exception("Failed to get Minecraft asset manifest");
+            string url = $"https://resources.download.minecraft.net/{hash[..2]}/{hash}";
+            results.Add(new
+            {
+                file_name = key,
+                hash,
+                size,
+                url
+            });
+        }
+
+        return results.ToArray();
+    }
+
+    /// <summary>
+    /// Retrieves the client and server jars for a specified Minecraft version.
+    /// </summary>
+    /// <param name="version">The Minecraft version for which to retrieve the jars.</param>
+    /// <returns>An anonymous object containing the URLs, SHA1 hashes, sizes, and mappings for the client and server jars.</returns>
+    public static async Task<object> GetJars(string version)
+    {
+        JObject versionManifest = await GetVersionManifest(version);
+
+
+        // Client
+        string? clientUrl = versionManifest["downloads"]?["client"]?["url"]?.ToString();
+        string? clientSha1 = versionManifest["downloads"]?["client"]?["sha1"]?.ToString();
+        string? clientMappingsUrl = versionManifest["downloads"]?["client_mappings"]?["url"]?.ToString();
+        long clientSize = long.Parse(versionManifest["downloads"]?["client"]?["size"]?.ToString() ?? "0");
+
+        // Server
+        string? serverUrl = versionManifest["downloads"]?["server"]?["url"]?.ToString();
+        string? serverSha1 = versionManifest["downloads"]?["server"]?["sha1"]?.ToString();
+        string? serverMappingsUrl = versionManifest["downloads"]?["server_mappings"]?["url"]?.ToString();
+        long serverSize = long.Parse(versionManifest["downloads"]?["server"]?["size"]?.ToString() ?? "0");
+        return new
+        {
+            client = new
+            {
+                url = clientUrl,
+                sha1 = clientSha1,
+                size = clientSize,
+                mappings = clientMappingsUrl
+            },
+            server = new
+            {
+                url = serverUrl,
+                sha1 = serverSha1,
+                size = serverSize,
+                mappings = serverMappingsUrl
+            }
+        };
+    }
+
+    /// <summary>
+    /// Retrieves the version manifest for a specified Minecraft version.
+    /// </summary>
+    /// <param name="version">The Minecraft version for which to retrieve the manifest.</param>
+    /// <returns>The version manifest as a JObject if successful; otherwise, throws an exception.</returns>
+    private static async Task<JObject> GetVersionManifest(string version)
+    {
+        using AdvancedNetworkClient httpClient = new();
+        JObject? response = await httpClient.GetAsJson("https://launchermeta.mojang.com/mc/game/version_manifest.json");
+        if (response is null)
+        {
+            throw new Exception("Failed to get Minecraft versions");
+        }
+
+        JArray versions = response["versions"] as JArray ?? throw new Exception("Failed to get Minecraft versions");
+        if (versions.FirstOrDefault(v => v["id"]?.ToString() == version) is not JObject selectedVersion) throw new Exception($"Version not found: {version}");
+        string url = selectedVersion["url"]?.ToString() ?? throw new Exception("Failed to get Minecraft versions");
+        JObject? versionResponse = await httpClient.GetAsJson(url);
+
+        return versionResponse ?? throw new Exception("Failed to get Minecraft versions");
+    }
 }
