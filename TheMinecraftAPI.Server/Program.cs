@@ -1,6 +1,8 @@
 ﻿using Serilog;
 using Serilog.Events;
 using System.IO.Compression;
+using System.Net;
+using Microsoft.AspNetCore.HttpOverrides;
 using TheMinecraftAPI.Server.Data;
 
 namespace TheMinecraftAPI.Server;
@@ -21,6 +23,10 @@ public static class Program
         builder.Services.AddMvc(options => options.EnableEndpointRouting = false);
         builder.Services.AddRazorPages().WithRazorPagesRoot("/Pages");
 
+#if RELEASE
+        builder.Services.Configure<ForwardedHeadersOptions>(options => { options.KnownProxies.Add(IPAddress.Parse("10.0.0.100")); });
+#endif
+
         var app = builder.Build();
 
 
@@ -32,8 +38,11 @@ public static class Program
         }
         else
         {
-            app.UseStatusCodePagesWithRedirects("/error/{0}");
-            app.UseForwardedHeaders();
+            app.UseStatusCodePagesWithRedirects("/error/{0}?url={1}");
+            app.UseForwardedHeaders(new ForwardedHeadersOptions()
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            });
             app.UseHttpsRedirection();
         }
 
