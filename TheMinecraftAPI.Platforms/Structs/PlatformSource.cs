@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace TheMinecraftAPI.Platforms.structs;
+namespace TheMinecraftAPI.Platforms.Structs;
 
 public struct PlatformSource
 {
