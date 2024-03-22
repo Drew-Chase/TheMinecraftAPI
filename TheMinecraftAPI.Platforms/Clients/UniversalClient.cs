@@ -38,7 +38,7 @@ public class UniversalClient : IDisposable, IPlatformClient
 
         return new PlatformSearchResults()
         {
-            Results = projects.OrderBy(i => i.Downloads).ToArray(),
+            Results = projects.OrderByDescending(i => i.Downloads).ToArray(),
             TotalResults = totalResults,
             Limit = totalLimit,
             Offset = totalOffset,
