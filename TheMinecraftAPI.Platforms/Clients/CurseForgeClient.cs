@@ -11,25 +11,32 @@ public partial class CurseForgeClient : IDisposable, IPlatformClient
     private readonly AdvancedNetworkClient _client = new();
     private const string BaseUrl = "https://api.curseforge.com/v1";
     private const int GameId = 432;
-    private const int ModClassId = 6;
-    private const int ModPackClassId = 4471;
-    private const int ResourcePackClassId = 4472;
     private const string ApiKey = "$2a$10$qD2UJdpHaeDaQyGGaGS0QeoDnKq2EC7sX6YSjOxYHtDZSQRg04BCG";
 
 
-    public async Task<PlatformSearchResults> SearchProjects(string query, string projectType, string loader, int limit, int offset)
+    public async Task<PlatformSearchResults> SearchProjects(string query, string projectType, string loader, string gameVersion, int limit, int offset)
     {
+        limit = Math.Clamp(limit, 0, 50);
         int classId = projectType switch
         {
-            "mod" => ModClassId,
-            "modpack" => ModPackClassId,
-            "resourcepack" => ResourcePackClassId,
+            "mod" => 6,
+            "modpack" => 4471,
+            "customization" => 4546,
+            "bukkit" => 5,
+            "resourcepack" => 12,
+            "shader" => 6552,
+            "world" => 17,
+            // These don't work in the API???
+            "addon" => 4559,
+            "datapack" => 6945,
             _ => 0
         };
         if (classId == 0) return PlatformSearchResults.Empty;
+        loader = string.IsNullOrWhiteSpace(loader) ? "" : $"&modLoaderType={loader}";
+        gameVersion = string.IsNullOrWhiteSpace(gameVersion) ? "" : $"&gameVersion={gameVersion}";
         JObject? json = await _client.GetAsJson(new HttpRequestMessage()
         {
-            RequestUri = new Uri($"{BaseUrl}/mods/search?gameId={GameId}&classId={classId}&searchFilter={query}&pageSize={limit}&index={offset}&modLoaderType={loader}"),
+            RequestUri = new Uri($"{BaseUrl}/mods/search?gameId={GameId}&classId={classId}&searchFilter={query}&pageSize={limit}&index={offset}{loader}{gameVersion}&sortOrder=desc"),
             Method = HttpMethod.Get,
             Headers = { { "x-api-key", ApiKey } }
         });
@@ -42,13 +49,59 @@ public partial class CurseForgeClient : IDisposable, IPlatformClient
             projects.Add(await FromJson(project, projectType));
         }
 
+        projects.Reverse();
         return new PlatformSearchResults()
         {
             Results = projects.ToArray(),
             Limit = json["pageSize"]?.ToObject<int>() ?? limit,
             Offset = json["index"]?.ToObject<int>() ?? offset,
             Query = query,
-            TotalResults = json["totalCount"]?.ToObject<int>() ?? projects.Count
+            TotalResults = json["pagination"]?["totalCount"]?.ToObject<int>() ?? projects.Count
+        };
+    }
+
+    public async Task<PlatformSearchResults> AdvancedSearchProjects(string query, int limit, int offset, AdvancedSearchOptions options)
+    {
+        if (options.Platforms.Length != 0 && !options.Platforms.Any(i => i.ToLower().Equals("curseforge"))) return PlatformSearchResults.Empty;
+        List<Task<PlatformSearchResults>> results = new();
+        options.ProjectTypes = options.ProjectTypes.Length == 0 ? new[] { "mod", "modpack", "resourcepack" } : options.ProjectTypes;
+
+        foreach (var type in options.ProjectTypes)
+        {
+            string loaderStr = "", versionStr = "";
+            if (options.Loaders.Length > 0)
+            {
+                foreach (var loader in options.Loaders)
+                    loaderStr = loader;
+            }
+
+            if (options.MinecraftVersions.Length > 0)
+            {
+                foreach (var version in options.MinecraftVersions)
+                    versionStr = version;
+            }
+
+            results.Add(SearchProjects(query, type, loaderStr, versionStr, limit, offset));
+        }
+
+        await Task.WhenAll(results.ToArray());
+
+        List<PlatformModel> projects = new();
+        int totalResults = 0;
+        foreach (var item in results.Select(task => task.Result).Where(item => !item.IsEmpty))
+        {
+            projects.AddRange(item.Results);
+            totalResults += item.TotalResults;
+        }
+
+
+        return new PlatformSearchResults()
+        {
+            Results = projects.ToArray(),
+            TotalResults = totalResults,
+            Limit = limit,
+            Offset = offset,
+            Query = query
         };
     }
 
@@ -63,7 +116,7 @@ public partial class CurseForgeClient : IDisposable, IPlatformClient
                 Method = HttpMethod.Get,
                 Headers = { { "x-api-key", ApiKey } }
             });
-            return json is null ? PlatformModel.Empty : await FromJson(json, "");
+            return json is null ? PlatformModel.Empty : await FromJson(json["data"]?.ToObject<JObject>() ?? new JObject(), "");
         }
         catch (Exception ex)
         {
@@ -122,7 +175,7 @@ public partial class CurseForgeClient : IDisposable, IPlatformClient
         foreach (var version in json["latestFilesIndexes"] ?? new JArray())
         {
             if (version is not JObject file || file["gameVersion"] is null) continue;
-            if (int.TryParse(file["loaderType"]?.ToString(), out int loaderType))
+            if (int.TryParse(file["modLoader"]?.ToString(), out int loaderType))
             {
                 loaders.Add(loaderType switch
                 {
@@ -137,7 +190,7 @@ public partial class CurseForgeClient : IDisposable, IPlatformClient
             gameVersions.Add(file["gameVersion"]?.ToString() ?? "");
         }
 
-        JObject? bodyJson = await _client.GetAsJson(new HttpRequestMessage()
+        JObject? bodyJson = await _client.GetAsJson(new HttpRequestMessage
         {
             RequestUri = new Uri($"{BaseUrl}/mods/{json["id"]}/description"),
             Method = HttpMethod.Get,
@@ -158,14 +211,12 @@ public partial class CurseForgeClient : IDisposable, IPlatformClient
             categories.Add(category["name"]?.ToString() ?? "");
         }
 
-        // string avatarUrl = "https://static-cdn.jtvnw.net/user-default-pictures-uv/294c98b5-e34d-42cd-a8f0-140b72fba9b0-profile_image-150x150.png";
-
         foreach (var author in json["authors"] ?? new JArray())
         {
             if (author is not JObject user) continue;
             string profileUrl = $"https://www.curseforge.com/members/{user["name"]?.ToString() ?? string.Empty}/projects";
 
-            authors.Add(new Author()
+            authors.Add(new Author
             {
                 Id = user["id"]?.ToString() ?? string.Empty,
                 Name = user["name"]?.ToString() ?? string.Empty,
@@ -176,7 +227,7 @@ public partial class CurseForgeClient : IDisposable, IPlatformClient
         foreach (var screenshot in json["screenshots"] ?? new JArray())
         {
             if (screenshot is not JObject image) continue;
-            gallery.Add(new GalleryImageModel()
+            gallery.Add(new GalleryImageModel
             {
                 Name = image["title"]?.ToString() ?? string.Empty,
                 Description = image["description"]?.ToString() ?? string.Empty,
@@ -185,7 +236,8 @@ public partial class CurseForgeClient : IDisposable, IPlatformClient
             });
         }
 
-        return new PlatformModel()
+
+        return new PlatformModel
         {
             Id = json["id"]?.ToString() ?? string.Empty,
             Name = json["name"]?.ToString() ?? string.Empty,
@@ -199,14 +251,17 @@ public partial class CurseForgeClient : IDisposable, IPlatformClient
             Body = body,
             Loaders = loaders.ToArray(),
             Categories = categories.ToArray(),
-            Tags = Array.Empty<string>(),
             Type = type,
             Authors = authors.ToArray(),
             Gallery = gallery.ToArray(),
-
+            Sides = new SupportedSides()
+            {
+                Client = "unknown",
+                Server = "unknown",
+            },
             Platforms = new[]
             {
-                new PlatformSource()
+                new PlatformSource
                 {
                     Id = json["id"]?.ToString() ?? string.Empty,
                     Name = "CurseForge"
@@ -214,27 +269,27 @@ public partial class CurseForgeClient : IDisposable, IPlatformClient
             },
             Links = new[]
             {
-                new PlatformLink()
+                new PlatformLink
                 {
                     Name = "Website",
-                    Url = json["websiteUrl"]?.ToString() ?? string.Empty
+                    Url = json["links"]?["websiteUrl"]?.ToString() ?? string.Empty
                 },
-                new PlatformLink()
+                new PlatformLink
                 {
                     Name = "Wiki",
-                    Url = json["wikiUrl"]?.ToString() ?? string.Empty
+                    Url = json["links"]?["wikiUrl"]?.ToString() ?? string.Empty
                 },
-                new PlatformLink()
+                new PlatformLink
                 {
                     Name = "Issues",
-                    Url = json["issuesUrl"]?.ToString() ?? string.Empty
+                    Url = json["links"]?["issuesUrl"]?.ToString() ?? string.Empty
                 },
-                new PlatformLink()
+                new PlatformLink
                 {
                     Name = "Source",
-                    Url = json["sourceUrl"]?.ToString() ?? string.Empty
+                    Url = json["links"]?["sourceUrl"]?.ToString() ?? string.Empty
                 }
-            }
+            }.Where(i => !string.IsNullOrWhiteSpace(i.Url)).ToArray()
         };
     }
 
