@@ -46,11 +46,6 @@ public struct PlatformModel
     [JsonProperty("authors")]
     public Author[] Authors { get; set; }
 
-    /// <summary>
-    /// Represents a platform model.
-    /// </summary>
-    [JsonProperty("tags")]
-    public string[] Tags { get; set; }
 
     /// <summary>
     /// Represents the categories of a platform.
@@ -116,6 +111,12 @@ public struct PlatformModel
     public string[] Loaders { get; set; }
 
     /// <summary>
+    /// Represents the supported sides of a platform.
+    /// </summary>
+    [JsonProperty("sides")]
+    public SupportedSides Sides { get; set; }
+
+    /// <summary>
     /// Represents an empty instance of the <see cref="PlatformModel"/> struct.
     /// </summary>
     public static readonly PlatformModel Empty = new()
@@ -126,7 +127,6 @@ public struct PlatformModel
         Body = string.Empty,
         Downloads = 0,
         Authors = Array.Empty<Author>(),
-        Tags = Array.Empty<string>(),
         Categories = Array.Empty<string>(),
         Links = Array.Empty<PlatformLink>(),
         Platforms = Array.Empty<PlatformSource>(),
@@ -141,21 +141,7 @@ public struct PlatformModel
     /// <summary>
     /// Represents an empty PlatformModel with default values for all properties.
     /// </summary>
-    public bool IsEmpty =>
-        Id == string.Empty &&
-        Name == string.Empty &&
-        Description == string.Empty &&
-        Body == string.Empty &&
-        Downloads == 0 &&
-        Authors.Length == 0 &&
-        Tags.Length == 0 &&
-        Categories.Length == 0 &&
-        Links.Length == 0 &&
-        Platforms.Length == 0 &&
-        Gallery.Length == 0 &&
-        Created == DateTime.MinValue &&
-        Updated == DateTime.MinValue &&
-        Versions.Length == 0 &&
-        GameVersions.Length == 0 &&
-        Loaders.Length == 0;
+    [JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool IsEmpty => Id == string.Empty;
 }
