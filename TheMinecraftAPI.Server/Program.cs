@@ -73,7 +73,7 @@ public static class Program
     {
         // Initialize Logging
         string[] logs = Directory.GetFiles(Directories.Logs, "*.log");
-        if (logs.Any())
+        if (logs.Length != 0)
         {
             using ZipArchive archive = ZipFile.Open(Path.Combine(Directories.Logs, $"logs-{DateTime.Now:MM-dd-yyyy HH-mm-ss.ffff}.zip"), ZipArchiveMode.Create);
             foreach (string log in logs)
@@ -85,8 +85,15 @@ public static class Program
 
         TimeSpan flushTime = TimeSpan.FromSeconds(30);
         Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Information()
-            .WriteTo.Console(ApplicationConfiguration.Instance.LogLevel, outputTemplate: $"[{ApplicationData.ApplicationName}] [{{Timestamp:HH:mm:ss}} {{Level:u3}}] {{Message:lj}}{{NewLine}}{{Exception}}")
+            .MinimumLevel.Verbose()
+            .WriteTo.Console(
+
+#if DEBUG
+                LogEventLevel.Verbose,
+#else
+                ApplicationConfiguration.Instance.LogLevel,
+#endif
+                outputTemplate: $"[{ApplicationData.ApplicationName}] [{{Timestamp:HH:mm:ss}} {{Level:u3}}] {{Message:lj}}{{NewLine}}{{Exception}}")
             .WriteTo.File(Files.DebugLog, LogEventLevel.Verbose, buffered: true, flushToDiskInterval: flushTime)
             .WriteTo.File(Files.LatestLog, LogEventLevel.Information, buffered: true, flushToDiskInterval: flushTime)
             .WriteTo.File(Files.ErrorLog, LogEventLevel.Error, buffered: false)
