@@ -139,4 +139,55 @@ public class PlatformController : ControllerBase
             return BadRequest(ex.Message);
         }
     }
+
+    [HttpGet("{type}/project/{id}/versions"), ResponseCache(Duration = 3600)] // Cache the author image for 1 hour
+    [ProducesResponseType(typeof(PlatformVersion[]), 200)]
+    [ProducesResponseType(typeof(string), 400)]
+    public async Task<IActionResult> GetProjectVersions([FromRoute] string id, [FromQuery] int limit = -1, [FromQuery] int offset = 0)
+    {
+        try
+        {
+            using UniversalClient client = new();
+            var versions = await client.GetProjectVersions(id, Array.Empty<string>(), Array.Empty<string>(), Array.Empty<ReleaseType>(), limit, offset);
+            return Ok(versions);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpPost("{type}/project/{id}/versions"), ResponseCache(Duration = 3600)] // Cache the author image for 1 hour
+    [ProducesResponseType(typeof(PlatformVersion[]), 200)]
+    [ProducesResponseType(typeof(string), 400)]
+    public async Task<IActionResult> GetProjectVersions([FromRoute] string id, [FromBody] VersionSearchOptions options, [FromQuery] int limit = -1, [FromQuery] int offset = 0)
+    {
+        try
+        {
+            using UniversalClient client = new();
+            var versions = await client.GetProjectVersions(id, options.GameVersions, options.Loaders, options.ReleaseTypes, limit, offset);
+            return Ok(versions);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpGet("{type}/project/{id}/version/{versionId}"), ResponseCache(Duration = 3600)] // Cache the author image for 1 hour
+    [ProducesResponseType(typeof(PlatformVersion), 200)]
+    [ProducesResponseType(typeof(string), 400)]
+    public async Task<IActionResult> GetProjectVersion(string id, string versionId)
+    {
+        try
+        {
+            using UniversalClient client = new();
+            var version = await client.GetProjectVersion(id, versionId);
+            return Ok(version);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
 }
