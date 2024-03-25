@@ -138,8 +138,13 @@ public class ModrinthClient : IDisposable, IPlatformClient
         List<GalleryImageModel> gallery = new();
         var categories = json["categories"]?.ToObject<List<string>>() ?? new List<string>();
         categories.AddRange(json["additional_categories"]?.ToObject<List<string>>() ?? new List<string>());
-        var loaders = categories.Where(i => supportedLoaders.Any(c => c.Equals(i, StringComparison.OrdinalIgnoreCase))).ToArray();
-        categories = categories.Except(loaders).ToList();
+
+        string[] loaders = json["loaders"]?.ToObject<string[]>() ?? Array.Empty<string>();
+        if (loaders.Length == 0)
+        {
+            loaders = categories.Where(i => supportedLoaders.Any(c => c.Equals(i, StringComparison.OrdinalIgnoreCase))).ToArray();
+            categories = categories.Except(loaders).ToList();
+        }
 
         foreach (var item in json["gallery"] ?? new JArray())
         {
@@ -231,8 +236,8 @@ public class ModrinthClient : IDisposable, IPlatformClient
             Links = sources.Where(i => !string.IsNullOrWhiteSpace(i.Url)).ToArray(),
             Gallery = gallery.ToArray(),
             Type = json["project_type"]?.ToString() ?? type,
-            Created = DateTime.Parse(json["date_created"]?.ToString() ?? "1970-01-01T00:00:00Z"),
-            Updated = DateTime.Parse(json["date_modified"]?.ToString() ?? "1970-01-01T00:00:00Z"),
+            Created = DateTime.Parse(json["date_created"]?.ToString() ?? json["published"]?.ToString() ?? "1970-01-01T00:00:00Z"),
+            Updated = DateTime.Parse(json["date_modified"]?.ToString() ?? json["updated"]?.ToString() ?? "1970-01-01T00:00:00Z"),
             Sides = new SupportedSides()
             {
                 Client = json["client_side"]?.ToObject<string>() ?? "unknown",
@@ -250,7 +255,7 @@ public class ModrinthClient : IDisposable, IPlatformClient
         };
     }
 
-    public async Task<string> GetProjectIcon(string id, string type)
+    public async Task<string> GetProjectIcon(string id)
     {
         if (string.IsNullOrWhiteSpace(id)) return string.Empty;
         JObject? json = await _client.GetAsJson($"{BaseUrl}/project/{id}");
@@ -272,6 +277,79 @@ public class ModrinthClient : IDisposable, IPlatformClient
         }
 
         return string.Empty;
+    }
+
+    public async Task<PlatformVersion[]> GetProjectVersions(string id, string[] gameVersions, string[] loaders, ReleaseType[] releaseTypes, int limit, int offset)
+    {
+        var json = await _client.GetAsJsonArray($"{BaseUrl}/project/{id}/version");
+        if (json is null) return Array.Empty<PlatformVersion>();
+        List<PlatformVersion> versions = new();
+        foreach (var item in json)
+        {
+            if (item is not JObject version) continue;
+            PlatformVersion platformVersion = FromJson(version);
+            if (platformVersion.IsEmpty) continue;
+
+            bool isGameVersionMatched = !gameVersions.Any() || platformVersion.GameVersions.Intersect(gameVersions).Any();
+            bool isLoaderMatched = !loaders.Any() || platformVersion.Loaders.Intersect(loaders).Any();
+            bool isReleaseTypeMatched = !releaseTypes.Any() || releaseTypes.Contains(platformVersion.ReleaseType);
+
+            if (isGameVersionMatched && isLoaderMatched && isReleaseTypeMatched)
+            {
+                versions.Add(platformVersion);
+            }
+        }
+
+        return limit > 0 ? versions.Skip(offset).Take(limit).ToArray() : versions.ToArray();
+    }
+
+    public async Task<PlatformVersion> GetProjectVersion(string id, string versionId)
+    {
+        JObject? json = await _client.GetAsJson($"{BaseUrl}/project/{id}/version/{versionId}");
+        return json is null ? PlatformVersion.Empty : FromJson(json);
+    }
+
+    private static PlatformVersion FromJson(JObject json)
+    {
+        return new PlatformVersion()
+        {
+            Id = json["id"]?.ToString() ?? string.Empty,
+            ProjectId = json["project_id"]?.ToString() ?? string.Empty,
+            Name = json["name"]?.ToString() ?? string.Empty,
+            Version = json["version_number"]?.ToString() ?? string.Empty,
+            UploadDate = json["date_published"]?.ToObject<DateTime>() ?? DateTime.MinValue,
+            Changelog = json["changelog"]?.ToString() ?? string.Empty,
+            Downloads = json["downloads"]?.ToObject<int>() ?? 0,
+            Loaders = json["loaders"]?.ToObject<string[]>() ?? Array.Empty<string>(),
+            GameVersions = json["game_versions"]?.ToObject<string[]>() ?? Array.Empty<string>(),
+            Dependencies = json["dependencies"]?.Select(i => new PlatformVersionDependencies()
+            {
+                Id = i["project_id"]?.ToString() ?? string.Empty,
+                VersionId = i["version_id"]?.ToString(),
+                Type = i["dependency_type"]?.ToString() switch
+                {
+                    "required" => PlatformVersionDependencyType.Required,
+                    "optional" => PlatformVersionDependencyType.Optional,
+                    "embedded" => PlatformVersionDependencyType.Embedded,
+                    _ => PlatformVersionDependencyType.Unknown
+                }
+            }).ToArray() ?? Array.Empty<PlatformVersionDependencies>(),
+            ReleaseType = json["release_type"]?.ToString() switch
+            {
+                "release" => ReleaseType.Release,
+                "beta" => ReleaseType.Beta,
+                "alpha" => ReleaseType.Alpha,
+                _ => ReleaseType.Unknown
+            },
+            Files = json["files"]?.Select(i => new PlatformVersionFile()
+            {
+                Url = i["url"]?.ToObject<Uri>(),
+                FileName = i["filename"]?.ToString() ?? "",
+                FileSize = i["size"]?.ToObject<long>() ?? 0,
+                Primary = i["primary"]?.ToObject<bool>() ?? false,
+                Hash = i["hashes"]?["sha512"]?.ToString(),
+            }).ToArray() ?? Array.Empty<PlatformVersionFile>()
+        };
     }
 
 
