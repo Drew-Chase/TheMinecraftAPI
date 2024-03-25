@@ -24,7 +24,6 @@ public class ModrinthClient : IDisposable, IPlatformClient
         foreach (var item in hits)
         {
             if (item is not JObject project) continue;
-            string id = project["project_id"]?.ToString() ?? string.Empty;
             PlatformModel model = await FromJson(project, projectType);
             if (model.IsEmpty) continue;
             projects.Add(model);
@@ -109,31 +108,6 @@ public class ModrinthClient : IDisposable, IPlatformClient
 
     private async Task<PlatformModel> FromJson(JObject json, string type, bool parseAuthors = false)
     {
-        string[] supportedLoaders =
-        {
-            "bukkit",
-            "bungeecord",
-            "canvas",
-            "datapack",
-            "fabric",
-            "folia",
-            "forge",
-            "iris",
-            "liteloader",
-            "minecraft",
-            "modloader",
-            "neoforge",
-            "optifine",
-            "paper",
-            "purpur",
-            "quilt",
-            "rift",
-            "spigot",
-            "sponge",
-            "vanilla",
-            "velocity",
-            "waterfall"
-        };
         string id = json["project_id"]?.ToString() ?? json["id"]?.ToString() ?? string.Empty;
         List<GalleryImageModel> gallery = new();
         var categories = json["categories"]?.ToObject<List<string>>() ?? new List<string>();
@@ -142,7 +116,7 @@ public class ModrinthClient : IDisposable, IPlatformClient
         string[] loaders = json["loaders"]?.ToObject<string[]>() ?? Array.Empty<string>();
         if (loaders.Length == 0)
         {
-            loaders = categories.Where(i => supportedLoaders.Any(c => c.Equals(i, StringComparison.OrdinalIgnoreCase))).ToArray();
+            loaders = categories.Where(i => UniversalClient.SupportedLoaders.Any(c => c.Equals(i, StringComparison.OrdinalIgnoreCase))).ToArray();
             categories = categories.Except(loaders).ToList();
         }
 
