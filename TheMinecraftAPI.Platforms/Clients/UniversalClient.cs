@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-using Serilog;
-using TheMinecraftAPI.Platforms.Structs;
+﻿using TheMinecraftAPI.Platforms.Structs;
 
 namespace TheMinecraftAPI.Platforms.Clients;
 
@@ -9,7 +7,7 @@ public class UniversalClient : IDisposable, IPlatformClient
     private readonly IPlatformClient[] _clients =
     {
         new ModrinthClient(),
-        new CurseForgeClient()
+        new CurseForgeClient(),
     };
 
     public async Task<PlatformSearchResults> SearchProjects(string query, string projectType, string loader, string gameVersion, int limit, int offset)
@@ -89,11 +87,11 @@ public class UniversalClient : IDisposable, IPlatformClient
         return PlatformModel.Empty;
     }
 
-    public async Task<string> GetProjectIcon(string id, string type)
+    public async Task<string> GetProjectIcon(string id)
     {
         foreach (var client in _clients)
         {
-            var icon = await client.GetProjectIcon(id, type);
+            var icon = await client.GetProjectIcon(id);
             if (!string.IsNullOrWhiteSpace(icon)) return icon;
         }
 
@@ -111,10 +109,48 @@ public class UniversalClient : IDisposable, IPlatformClient
         return string.Empty;
     }
 
-    public static PlatformModel[] SortByNameFuzzy(string query, IEnumerable<PlatformModel> projects)
+    public async Task<PlatformVersion[]> GetProjectVersions(string id, string[] gameVersions, string[] loaders, ReleaseType[] releaseTypes, int limit, int offset)
+    {
+        foreach (var client in _clients)
+        {
+            try
+            {
+                var result = await client.GetProjectVersions(id, gameVersions, loaders, releaseTypes, limit, offset);
+                if (result.Length == 0) continue;
+                return result;
+            }
+            catch
+            {
+                // ignored
+            }
+        }
+
+        return Array.Empty<PlatformVersion>();
+    }
+
+    public async Task<PlatformVersion> GetProjectVersion(string id, string versionId)
+    {
+
+        foreach (var client in _clients)
+        {
+            try
+            {
+                var result = await client.GetProjectVersion(id, versionId);
+                if (result.IsEmpty) continue;
+                return result;
+            }
+            catch
+            {
+                // ignored
+            }
+        }
+        return PlatformVersion.Empty;
+    }
+
+    private static IEnumerable<PlatformModel> SortByNameFuzzy(string query, IEnumerable<PlatformModel> projects)
     {
         // calculate the Levenshtein difference between the query and the project name
-        return projects.OrderBy(i => CalculateLevenshteinDifference(query, i.Name)).ToArray();
+        return projects.OrderBy(i => CalculateLevenshteinDifference(query, i.Name));
     }
 
     public static int CalculateLevenshteinDifference(string a, string b) => CalculateLevenshteinDifference(a, b, a.Length, b.Length);
