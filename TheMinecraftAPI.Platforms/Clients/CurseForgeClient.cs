@@ -176,7 +176,7 @@ public partial class CurseForgeClient : IDisposable, IPlatformClient
 
     private PlatformVersion FromJson(JObject json)
     {
-        
+        return PlatformVersion.Empty;
     }
 
     private async Task<PlatformModel> FromJson(JObject json, string type)
