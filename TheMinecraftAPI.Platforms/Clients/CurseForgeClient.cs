@@ -112,7 +112,7 @@ public partial class CurseForgeClient : IDisposable, IPlatformClient
         {
             JObject? json = await _client.GetAsJson(new HttpRequestMessage()
             {
-                RequestUri = new Uri($"https://api.curseforge.com/v1/mods/{id}"),
+                RequestUri = new Uri($"{BaseUrl}/v1/mods/{id}"),
                 Method = HttpMethod.Get,
                 Headers = { { "x-api-key", ApiKey } }
             });
@@ -129,7 +129,7 @@ public partial class CurseForgeClient : IDisposable, IPlatformClient
     {
         JObject? json = await _client.GetAsJson(new HttpRequestMessage()
         {
-            RequestUri = new Uri($"https://api.curseforge.com/v1/mods/{id}"),
+            RequestUri = new Uri($"{BaseUrl}/v1/mods/{id}"),
             Method = HttpMethod.Get,
             Headers = { { "x-api-key", ApiKey } }
         });
@@ -145,7 +145,7 @@ public partial class CurseForgeClient : IDisposable, IPlatformClient
 
     public async Task<string> GetAuthorProfileImage(string username)
     {
-        string profileUrl = $"https://www.curseforge.com/members/{username}/projects";
+        string profileUrl = $"{BaseUrl}/members/{username}/projects";
         try
         {
             string html = await _client.GetStringAsync(profileUrl);
@@ -166,17 +166,97 @@ public partial class CurseForgeClient : IDisposable, IPlatformClient
 
     public async Task<PlatformVersion[]> GetProjectVersions(string id, string[] gameVersions, string[] loaders, ReleaseType[] releaseTypes, int limit, int offset)
     {
-        throw new NotImplementedException();
+        var data = await _client.GetAsJson(new HttpRequestMessage()
+        {
+            RequestUri = new Uri($"https://api.curseforge.com/v1/mods/{id}/files"),
+            Method = HttpMethod.Get,
+            Headers = { { "x-api-key", ApiKey } }
+        });
+        if (data is null) return Array.Empty<PlatformVersion>();
+        List<PlatformVersion> versions = new();
+        foreach (var item in data["data"] ?? new JArray())
+        {
+            if (item is not JObject version) continue;
+            PlatformVersion platformVersion = FromJson(version);
+            if (platformVersion.IsEmpty) continue;
+
+            bool isGameVersionMatched = !gameVersions.Any() || platformVersion.GameVersions.Intersect(gameVersions).Any();
+            bool isLoaderMatched = !loaders.Any() || platformVersion.Loaders.Intersect(loaders).Any();
+            bool isReleaseTypeMatched = !releaseTypes.Any() || releaseTypes.Contains(platformVersion.ReleaseType);
+
+            if (isGameVersionMatched && isLoaderMatched && isReleaseTypeMatched)
+            {
+                versions.Add(platformVersion);
+            }
+        }
+
+        return limit > 0 ? versions.Skip(offset).Take(limit).ToArray() : versions.ToArray();
     }
 
     public async Task<PlatformVersion> GetProjectVersion(string id, string versionId)
     {
-        throw new NotImplementedException();
+        var json = await _client.GetAsJson(new HttpRequestMessage()
+        {
+            RequestUri = new Uri($"https://api.curseforge.com/v1/mods/{id}/files/{versionId}"),
+            Method = HttpMethod.Get,
+            Headers = { { "x-api-key", ApiKey } }
+        });
+        if (json?["data"] is not { } data) return PlatformVersion.Empty;
+        if (data is JObject obj)
+            return FromJson(obj);
+        return PlatformVersion.Empty;
     }
 
-    private PlatformVersion FromJson(JObject json)
+    private static PlatformVersion FromJson(JObject json)
     {
-        return PlatformVersion.Empty;
+        var versions = json["gameVersions"]?.ToObject<List<string>>() ?? new List<string>();
+        var loaders = versions.Where(i => UniversalClient.SupportedLoaders.Any(c => c.Equals(i, StringComparison.OrdinalIgnoreCase))).ToArray();
+        versions = versions.Except(loaders).ToList();
+
+        return new PlatformVersion()
+        {
+            Id = json["id"]?.ToString() ?? string.Empty,
+            Name = json["displayName"]?.ToString() ?? string.Empty,
+            Changelog = "",
+            ProjectId = json["modId"]?.ToString() ?? string.Empty,
+            GameVersions = versions.ToArray(),
+            Loaders = loaders,
+            ReleaseType = json["releaseType"]?.ToObject<int>() switch
+            {
+                1 => ReleaseType.Release,
+                2 => ReleaseType.Beta,
+                3 => ReleaseType.Alpha,
+                _ => ReleaseType.Unknown
+            },
+            UploadDate = json["fileDate"]?.ToObject<DateTime>() ?? DateTime.MinValue,
+            Downloads = json["downloadCount"]?.ToObject<int>() ?? 0,
+            Files = new[]
+            {
+                new PlatformVersionFile()
+                {
+                    FileName = json["fileName"]?.ToString() ?? string.Empty,
+                    FileSize = json["fileLength"]?.ToObject<long>() ?? 0,
+                    Url = json["downloadUrl"]?.ToObject<Uri>(),
+                    Primary =true,
+                    Hash = json["hashes"]?[0]?["value"]?.ToString() ?? string.Empty,
+                }
+            },
+            Version = json["displayName"]?.ToString() ?? string.Empty,
+            Dependencies = json["dependencies"]?.ToArray()?.Select(i=>
+                new PlatformVersionDependencies()
+                {
+                    Id = i["modId"]?.ToString() ?? string.Empty,
+                    VersionId = null,
+                    Type = i["type"]?.ToObject<int>() switch
+                    {
+                        1 => PlatformVersionDependencyType.Embedded,
+                        2 => PlatformVersionDependencyType.Optional,
+                        3 => PlatformVersionDependencyType.Required,
+                        _ => PlatformVersionDependencyType.Unknown
+                    }
+                }).ToArray() ?? Array.Empty<PlatformVersionDependencies>(),
+
+        };
     }
 
     private async Task<PlatformModel> FromJson(JObject json, string type)
