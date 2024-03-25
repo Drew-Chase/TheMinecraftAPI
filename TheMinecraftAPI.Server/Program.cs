@@ -29,12 +29,7 @@ public static class Program
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
-        if (app.Environment.IsDevelopment())
-        {
-            app.UseSwagger();
-            app.UseSwaggerUI();
-        }
-        else
+        if (!app.Environment.IsDevelopment())
         {
             app.UseStatusCodePagesWithRedirects("/error/{0}?url={1}");
             app.UseForwardedHeaders(new ForwardedHeadersOptions()
@@ -44,6 +39,8 @@ public static class Program
             app.UseHttpsRedirection();
         }
 
+        app.UseSwagger();
+        app.UseSwaggerUI();
 
         app.UseRouting();
         app.MapControllers();
