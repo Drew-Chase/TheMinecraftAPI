@@ -44,7 +44,7 @@ public class PlatformController : ControllerBase
 
 
     [HttpGet("{type}/project/{id}"), ResponseCache(Duration = 3600)] // Cache the project for 1 hour
-    public async Task<IActionResult> GetProject([FromRoute] string id, [FromRoute(Name = "type")] string type, [FromQuery] string loader = "")
+    public async Task<IActionResult> GetProject([FromRoute] string id, [FromRoute(Name = "type")] string type)
     {
         try
         {
@@ -67,7 +67,7 @@ public class PlatformController : ControllerBase
                 return BadRequest("Invalid id or type.");
 
             using UniversalClient client = new();
-            var icon = await client.GetProjectIcon(id, type);
+            var icon = await client.GetProjectIcon(id);
             // Convert the base64 string to a byte array and return it as a png image
             return File(Convert.FromBase64String(icon[22..]), "image/png");
         }
@@ -85,7 +85,7 @@ public class PlatformController : ControllerBase
                 return BadRequest("Invalid id or type.");
 
             using UniversalClient client = new();
-            var icon = await client.GetProjectIcon(id, type);
+            var icon = await client.GetProjectIcon(id);
             return Ok(icon);
         }
         catch (Exception ex)
