@@ -11,15 +11,13 @@ namespace TheMinecraftAPI.Server.Controllers;
 [ApiController]
 public class ApplicationController : ControllerBase
 {
+    /// <summary>
+    /// Redirects to the Swagger UI page.
+    /// </summary>
+    /// <returns>An <see cref="IActionResult"/> object that redirects to the Swagger UI page.</returns>
     [HttpGet()]
     public IActionResult Get()
     {
-        return Ok(ApplicationData.GenerateApplicationData());
-    }
-
-    [HttpGet("fuzzy-test")]
-    public IActionResult FuzzyTest(string a, string b)
-    {
-        return Ok(UniversalClient.CalculateLevenshteinDifference(a, b));
+        return Redirect("swagger/");
     }
 }
