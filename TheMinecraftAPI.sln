@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheMinecraftAPI.Vanilla", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheMinecraftAPI.Platforms", "TheMinecraftAPI.Platforms\TheMinecraftAPI.Platforms.csproj", "{97E0A8C1-3C71-437B-9717-60507E1DD06D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheMinecraftAPI.Authentication", "TheMinecraftAPI.Authentication\TheMinecraftAPI.Authentication.csproj", "{D57AD5E7-DF93-44A9-9B51-A0B19B9AAFFC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{97E0A8C1-3C71-437B-9717-60507E1DD06D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{97E0A8C1-3C71-437B-9717-60507E1DD06D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{97E0A8C1-3C71-437B-9717-60507E1DD06D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D57AD5E7-DF93-44A9-9B51-A0B19B9AAFFC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D57AD5E7-DF93-44A9-9B51-A0B19B9AAFFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D57AD5E7-DF93-44A9-9B51-A0B19B9AAFFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D57AD5E7-DF93-44A9-9B51-A0B19B9AAFFC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
