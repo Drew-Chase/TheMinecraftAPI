@@ -4,6 +4,33 @@ namespace TheMinecraftAPI.Platforms.Clients;
 
 public class UniversalClient : IDisposable, IPlatformClient
 {
+
+   public static readonly string[] SupportedLoaders =
+    {
+        "bukkit",
+        "bungeecord",
+        "canvas",
+        "datapack",
+        "fabric",
+        "folia",
+        "forge",
+        "iris",
+        "liteloader",
+        "minecraft",
+        "modloader",
+        "neoforge",
+        "optifine",
+        "paper",
+        "purpur",
+        "quilt",
+        "rift",
+        "spigot",
+        "sponge",
+        "vanilla",
+        "velocity",
+        "waterfall"
+    };
+
     private readonly IPlatformClient[] _clients =
     {
         new ModrinthClient(),
