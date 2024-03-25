@@ -38,9 +38,8 @@ public interface IPlatformClient
     /// Retrieves the icon URL for a platform project by its ID and type.
     /// </summary>
     /// <param name="id">The ID of the project.</param>
-    /// <param name="type">The type of the project (mod, modpack, resourcepack, etc.).</param>
     /// <returns>The URL of the project icon.</returns>
-    public Task<string> GetProjectIcon(string id, string type);
+    public Task<string> GetProjectIcon(string id);
 
     /// <summary>
     /// Retrieves the URL of the author's profile image.
@@ -48,5 +47,25 @@ public interface IPlatformClient
     /// <param name="username">The username of the author.</param>
     /// <returns>The URL of the author's profile image as a string.</returns>
     public Task<string> GetAuthorProfileImage(string username);
+
+    /// <summary>
+    /// Retrieves a list of project versions for a given project.
+    /// </summary>
+    /// <param name="id">The ID of the project.</param>
+    /// <param name="gameVersions">An array of game versions.</param>
+    /// <param name="loaders">An array of loaders.</param>
+    /// <param name="releaseTypes">An array of release types.</param>
+    /// <param name="limit">The maximum number of versions to return.</param>
+    /// <param name="offset">The number of versions to skip before returning the result.</param>
+    /// <returns>An array of PlatformVersion objects representing the project versions.</returns>
+    public Task<PlatformVersion[]> GetProjectVersions(string id, string[] gameVersions, string[] loaders, ReleaseType[] releaseTypes, int limit, int offset);
+
+    /// <summary>
+    /// Retrieves the details of a specific version of a project.
+    /// </summary>
+    /// <param name="id">The ID of the project.</param>
+    /// <param name="versionId">The ID of the version.</param>
+    /// <returns>A <see cref="PlatformVersion"/> object representing the details of the specified version.</returns>
+    public Task<PlatformVersion> GetProjectVersion(string id, string versionId);
 
 }
