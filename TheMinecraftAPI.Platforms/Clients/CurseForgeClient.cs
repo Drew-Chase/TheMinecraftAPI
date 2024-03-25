@@ -125,7 +125,7 @@ public partial class CurseForgeClient : IDisposable, IPlatformClient
         }
     }
 
-    public async Task<string> GetProjectIcon(string id, string type)
+    public async Task<string> GetProjectIcon(string id)
     {
         JObject? json = await _client.GetAsJson(new HttpRequestMessage()
         {
@@ -162,6 +162,21 @@ public partial class CurseForgeClient : IDisposable, IPlatformClient
         }
 
         return string.Empty;
+    }
+
+    public async Task<PlatformVersion[]> GetProjectVersions(string id, string[] gameVersions, string[] loaders, ReleaseType[] releaseTypes, int limit, int offset)
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task<PlatformVersion> GetProjectVersion(string id, string versionId)
+    {
+        throw new NotImplementedException();
+    }
+
+    private PlatformVersion FromJson(JObject json)
+    {
+        
     }
 
     private async Task<PlatformModel> FromJson(JObject json, string type)
