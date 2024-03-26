@@ -38,6 +38,14 @@ internal static class Program
                 }
             });
 
+#if RELEASE
+            options.AddServer(new OpenApiServer()
+            {
+                Url = "https://api.theminecraftapi.com",
+                Description = "The Minecraft API",
+            });
+#endif
+
             var xmlFilePath = Path.Combine(AppContext.BaseDirectory, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml");
             if (File.Exists(xmlFilePath))
                 options.IncludeXmlComments(xmlFilePath);
