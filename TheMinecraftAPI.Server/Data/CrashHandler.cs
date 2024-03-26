@@ -3,8 +3,15 @@ using Serilog;
 
 namespace TheMinecraftAPI.Server.Data;
 
+/// <summary>
+/// Provides functionality to handle crashes and generate crash reports.
+/// </summary>
 public static class CrashHandler
 {
+    /// <summary>
+    /// Reports an exception and exits the application.
+    /// </summary>
+    /// <param name="ex">The exception to report.</param>
     public static void ReportAndExit(Exception ex)
     {
         string file = Report(ex);
@@ -13,6 +20,10 @@ public static class CrashHandler
         Environment.Exit(1);
     }
 
+    /// <summary>
+    /// Generates a crash report and exits the application.
+    /// </summary>
+    /// <param name="ex">The exception object.</param>
     public static string Report(Exception ex)
     {
         DateTime now = DateTime.Now;
