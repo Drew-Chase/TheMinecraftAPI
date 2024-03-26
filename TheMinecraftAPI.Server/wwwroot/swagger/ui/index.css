@@ -146,3 +146,7 @@ body {
 .swagger-ui .expand-methods, .swagger-ui .expand-operation {
     filter: invert();
 }
+
+.swagger-ui .scheme-container {
+    display: none;
+}
