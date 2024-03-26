@@ -1,6 +1,8 @@
 ﻿using System.IO.Compression;
 using System.Net;
+using System.Reflection;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.OpenApi.Models;
 using Serilog;
 using Serilog.Events;
 using TheMinecraftAPI.ModLoaders.Clients;
@@ -10,9 +12,9 @@ using Timer = System.Timers.Timer;
 
 namespace TheMinecraftAPI.Server;
 
-public static class Program
+internal static class Program
 {
-    public static void Main(string[] args)
+    private static void Main(string[] args)
     {
         ApplicationConfiguration.Instance.Initialize(Files.ApplicationConfiguration);
         ConfigureLogging();
@@ -21,7 +23,25 @@ public static class Program
         // Add services to the container.
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+        builder.Services.AddSwaggerGen(options =>
+        {
+            options.SwaggerDoc("v1", new()
+            {
+                Title = "The Minecraft API",
+                Version = "v1",
+                Description = "The Minecraft API is a RESTful API for querying minecraft servers, various modding apis, etc. It is designed to be a simple and easy to use API for developers to use in their applications.",
+                TermsOfService = new Uri("https://theminecraftapi/legal/tos"),
+                License = new OpenApiLicense()
+                {
+                    Name = "All Rights Reserved",
+                    Url = new Uri("https://raw.githubusercontent.com/Drew-Chase/TheMinecraftAPI/master/LICENSE")
+                }
+            });
+
+            var xmlFilePath = Path.Combine(AppContext.BaseDirectory, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml");
+            if (File.Exists(xmlFilePath))
+                options.IncludeXmlComments(xmlFilePath);
+        });
         builder.Services.AddSerilog();
         builder.Services.AddMvc(options => options.EnableEndpointRouting = false);
 
@@ -43,7 +63,12 @@ public static class Program
         }
 
         app.UseSwagger();
-        app.UseSwaggerUI();
+        app.UseSwaggerUI(options =>
+        {
+            options.DocumentTitle = "The Minecraft API";
+            options.SwaggerEndpoint("/swagger/v1/swagger.json", "The Minecraft API");
+            options.ConfigObject.AdditionalItems.Add("favicon", "https://theminecraftapi.com/assets/images/favicon.png");
+        });
 
         app.UseRouting();
         app.MapControllers();
