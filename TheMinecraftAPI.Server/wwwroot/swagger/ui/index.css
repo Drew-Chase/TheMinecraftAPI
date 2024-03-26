@@ -1,0 +1,148 @@
+html {
+    box-sizing: border-box;
+    overflow: -moz-scrollbars-vertical;
+    overflow-y: scroll;
+    color-scheme: dark;
+}
+
+*,
+*:before,
+*:after {
+    box-sizing: inherit;
+}
+
+body {
+    margin: 0;
+    color: white !important;
+    background: #1c1c1c;
+}
+
+.topbar {
+    display: none;
+}
+
+.swagger-ui .info .title {
+    color: #EEB831;
+}
+
+.swagger-ui .info a {
+    color: #EEB831;
+}
+
+.swagger-ui .info a:hover {
+    text-decoration: underline;
+    color: #fdd576;
+}
+
+.swagger-ui .info li, .swagger-ui .info p, .swagger-ui .info table {
+    color: #d4d7de;
+}
+
+.swagger-ui .opblock-tag {
+    color: #baceda;
+}
+
+.swagger-ui .opblock-tag {
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: rgba(199, 217, 255, 0.3);
+}
+
+.swagger-ui .opblock .opblock-summary-operation-id, .swagger-ui .opblock .opblock-summary-path, .swagger-ui .opblock .opblock-summary-path__deprecated {
+    color: #c5d3f3;
+}
+
+.swagger-ui .model-title {
+    color: #f2fbf5;
+}
+
+.swagger-ui section.models {
+    border: 1px solid #EEB831;
+}
+
+.swagger-ui section.models .model-container:hover {
+    background: rgba(238, 184, 49, 0.29);
+}
+
+.swagger-ui input[disabled], .swagger-ui select[disabled], .swagger-ui textarea[disabled] {
+    background-color: #ffffff;
+    color: #000000;
+    border: none;
+}
+
+.swagger-ui .opblock .opblock-section-header {
+    background: transparent;
+}
+
+.swagger-ui .opblock.opblock-get {
+    background: rgba(97, 175, 254, .1);
+    border-color: #61affe;
+    /*filter: brightness(3);*/
+}
+
+.swagger-ui .opblock.opblock-get .opblock-summary-method {
+    background: #61affe;
+    /*filter: brightness(0.3);*/
+}
+
+.swagger-ui .opblock .opblock-section-header h4 {
+    color: #aec3f1;
+}
+
+.swagger-ui table thead tr td, .swagger-ui table thead tr th {
+    border-bottom: 1px solid rgba(188, 202, 255, 0.2);
+    color: #b9ceff;
+}
+
+.swagger-ui .parameter__name {
+    color: #b3c4ff;
+}
+
+.swagger-ui .parameter__type {
+    color: #a1afde;
+}
+
+.swagger-ui .response-col_status {
+    color: #9eabda;
+}
+
+.swagger-ui {
+    color: #c1d1fb;
+}
+
+.swagger-ui .tab li {
+    color: #b3c6f4;
+}
+
+.swagger-ui .model {
+    color: #becdf4;
+}
+
+.swagger-ui .model-toggle {
+    filter: invert();
+}
+
+.swagger-ui .opblock-description-wrapper p, .swagger-ui .opblock-external-docs-wrapper p, .swagger-ui .opblock-title_normal p {
+    color: #ffffff;
+}
+
+.swagger-ui .btn {
+    color: #b0bdde;
+}
+.swagger-ui .parameters-col_description input {
+    color: black;
+}
+
+.swagger-ui .response-col_links {
+    color: #9fb3de;
+}
+
+.swagger-ui .responses-inner h4, .swagger-ui .responses-inner h5 {
+    color: #b9c6ed;
+}
+.swagger-ui .opblock-control-arrow {
+    filter: invert();
+}
+.swagger-ui .expand-methods, .swagger-ui .expand-operation {
+    filter: invert();
+}
