@@ -3,8 +3,12 @@ using Serilog;
 
 namespace TheMinecraftAPI.Server.Controllers;
 
+/// <summary>
+/// Controller that handles error requests and logs the error using Serilog.
+/// </summary>
 [Route("error")]
 [ApiController]
+[ApiExplorerSettings(IgnoreApi = true)]
 public class ErrorController : ControllerBase
 {
     /// <summary>
@@ -14,7 +18,7 @@ public class ErrorController : ControllerBase
     /// <param name="url">The URL of the request that caused the error.</param>
     /// <returns>An IActionResult representing the response to the error request.</returns>
     [HttpGet("{code:int}")]
-    public IActionResult Index([FromRoute]int code, [FromQuery] string url)
+    public IActionResult Index([FromRoute] int code, [FromQuery] string url)
     {
         Log.Error("Error {code} for {url}", code, url);
         return new ContentResult()
