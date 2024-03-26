@@ -1,5 +1,6 @@
 ﻿using Chase.CommonLib.Networking;
 using Newtonsoft.Json.Linq;
+using TheMinecraftAPI.Vanilla.Structs;
 
 namespace TheMinecraftAPI.Vanilla;
 
@@ -254,7 +255,7 @@ public static class MinecraftResources
     /// <param name="filter">Optional filter for a specific version.</param>
     /// <param name="snapshots">Indicates if only snapshot versions should be included.</param>
     /// <returns>An object containing the list of available versions.</returns>
-    public static async Task<object> GetVersions(Version? filter = null, bool snapshots = false)
+    public static async Task<MinecraftVersionHistory> GetVersions(Version? filter = null, bool snapshots = false)
     {
         using AdvancedNetworkClient httpClient = new();
         JObject? response = await httpClient.GetAsJson("https://launchermeta.mojang.com/mc/game/version_manifest.json");
@@ -268,8 +269,8 @@ public static class MinecraftResources
         string latestRelease = latest["release"]?.ToString() ?? throw new Exception("Failed to get Minecraft versions");
         string latestSnapshot = latest["snapshot"]?.ToString() ?? throw new Exception("Failed to get Minecraft versions");
 
-        List<object> releasesList = new();
-        List<object> snapshotsList = new();
+        List<MinecraftVersion> releasesList = new();
+        List<MinecraftVersion> snapshotsList = new();
 
         foreach (var jToken in versions)
         {
@@ -282,13 +283,13 @@ public static class MinecraftResources
             if (isSnapshot)
             {
                 if (snapshots && filter is null)
-                    snapshotsList.Add(new
+                    snapshotsList.Add(new MinecraftVersion
                     {
-                        id,
-                        type,
-                        time,
-                        releaseTime,
-                        latest = latestSnapshot == id
+                        Id = id,
+                        Type = type,
+                        Time = time,
+                        ReleaseTime = releaseTime,
+                        Latest = latestSnapshot == id
                     });
             }
             else
@@ -298,34 +299,34 @@ public static class MinecraftResources
                     Version major = new(filter.Major, filter.Minor + 1);
                     if (Version.TryParse(id, out Version? v) && v >= filter && v < major)
                     {
-                        releasesList.Add(new
+                        releasesList.Add(new MinecraftVersion
                         {
-                            id,
-                            type,
-                            time,
-                            releaseTime,
-                            latest = latestRelease == id
+                            Id = id,
+                            Type = type,
+                            Time = time,
+                            ReleaseTime = releaseTime,
+                            Latest = latestRelease == id
                         });
                     }
                 }
                 else
                 {
-                    releasesList.Add(new
+                    releasesList.Add(new MinecraftVersion
                     {
-                        id,
-                        type,
-                        time,
-                        releaseTime,
-                        latest = latestRelease == id
+                        Id = id,
+                        Type = type,
+                        Time = time,
+                        ReleaseTime = releaseTime,
+                        Latest = latestRelease == id
                     });
                 }
             }
         }
 
-        return new
+        return new MinecraftVersionHistory
         {
-            snapshots = snapshotsList,
-            releases = releasesList,
+            Releases = releasesList.ToArray(),
+            Snapshots = snapshotsList.ToArray(),
         };
     }
 
