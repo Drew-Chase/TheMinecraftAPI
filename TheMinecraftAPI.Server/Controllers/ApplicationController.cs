@@ -6,9 +6,13 @@ using TheMinecraftAPI.Server.Data;
 
 namespace TheMinecraftAPI.Server.Controllers;
 
+/// <summary>
+/// The controller for managing the application.
+/// </summary>
 [Produces("application/json")]
 [Route("/")]
 [ApiController]
+[ApiExplorerSettings(IgnoreApi = true)]
 public class ApplicationController : ControllerBase
 {
     /// <summary>
