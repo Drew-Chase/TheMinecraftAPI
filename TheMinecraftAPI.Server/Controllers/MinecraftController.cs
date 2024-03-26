@@ -4,6 +4,9 @@ using TheMinecraftAPI.Vanilla;
 
 namespace TheMinecraftAPI.Server.Controllers;
 
+/// <summary>
+/// Controller for Minecraft related operations.
+/// </summary>
 [Produces("application/json")]
 [Route("/minecraft/")]
 [ApiController]
