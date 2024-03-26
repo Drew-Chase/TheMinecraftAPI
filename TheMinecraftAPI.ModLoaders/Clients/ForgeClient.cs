@@ -1,6 +1,7 @@
 ﻿using Chase.CommonLib.Networking;
 using HtmlAgilityPack;
 using Newtonsoft.Json;
+using Serilog;
 using TheMinecraftAPI.ModLoaders.Structs;
 
 namespace TheMinecraftAPI.ModLoaders.Clients;
@@ -28,9 +29,10 @@ public class ForgeClient : IModLoaderClient
         if (!File.Exists(ForgeJsonPath)) return Array.Empty<string>();
         string json = await File.ReadAllTextAsync(ForgeJsonPath);
         var versions = JsonConvert.DeserializeObject<LoaderVersion[]>(json) ?? Array.Empty<LoaderVersion>();
-        return gameVersion is null ? versions
-            .Select(version => version.Version).Distinct().ToArray() :
-            versions.Where(version => version.MinecraftVersion == gameVersion).Select(version => version.Version).ToArray();
+        return gameVersion is null
+            ? versions
+                .Select(version => version.Version).Distinct().ToArray()
+            : versions.Where(version => version.MinecraftVersion == gameVersion).Select(version => version.Version).ToArray();
     }
 
     /// <summary>
@@ -52,12 +54,30 @@ public class ForgeClient : IModLoaderClient
                     HtmlDocument document = new();
                     document.LoadHtml(html);
                     if (document.DocumentNode == null) continue;
-                    HtmlNodeCollection nodes = document.DocumentNode.SelectNodes("//td[@class='download-version']");
-                    foreach (HtmlNode node in nodes)
+                    HtmlNodeCollection downloadVersions = document.DocumentNode.SelectNodes("//td[@class='download-version']");
+
+                    foreach (HtmlNode node in downloadVersions)
                     {
+                        var parent = node.ParentNode;
+
+                        var downloadLinks = parent?.SelectNodes("//td[@class='download-files']/ul[@class='download-links']/li");
+                        if (downloadLinks is null) continue;
+                        string downloadUrl = "";
+
+                        foreach (var link in downloadLinks)
+                        {
+                            var anchor = link.SelectSingleNode("a");
+                            if (anchor is null) continue;
+                            string innerText = anchor.InnerText.Replace("\n", "").Replace(" ", "").Trim();
+                            if (!innerText.Equals("installer", StringComparison.OrdinalIgnoreCase)) continue;
+                            downloadUrl = anchor.GetAttributeValue("href", "").Split("url=").Last();
+                            break; // stop after first match.
+                        }
+
                         string versionNumber = node.InnerText.Trim('/').Trim();
                         if (!int.TryParse(versionNumber[0].ToString(), out _)) continue;
-                        if (Uri.TryCreate($"https://maven.minecraftforge.net/net/minecraftforge/forge/{version}-{versionNumber}/forge-{version}-{versionNumber}-installer.jar", UriKind.Absolute, out Uri? versionUrl))
+                        // $"https://maven.minecraftforge.net/net/minecraftforge/forge/{version}-{versionNumber}/forge-{version}-{versionNumber}-installer.jar"
+                        if (Uri.TryCreate(downloadUrl, UriKind.Absolute, out Uri? versionUrl))
                             versions.Add(new LoaderVersion()
                             {
                                 Version = versionNumber,
