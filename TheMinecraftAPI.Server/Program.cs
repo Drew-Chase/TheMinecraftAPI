@@ -30,7 +30,7 @@ internal static class Program
                 Title = "The Minecraft API",
                 Version = "v1",
                 Description = "The Minecraft API is a RESTful API for querying minecraft servers, various modding apis, etc. It is designed to be a simple and easy to use API for developers to use in their applications.",
-                TermsOfService = new Uri("https://theminecraftapi/legal/tos"),
+                TermsOfService = new Uri("https://theminecraftapi.com/legal/tos"),
                 License = new OpenApiLicense()
                 {
                     Name = "All Rights Reserved",
