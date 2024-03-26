@@ -69,4 +69,11 @@ public class LoaderController : ControllerBase
         client.Dispose();
         return Ok(versions);
     }
+    [HttpGet("forge/wrapper")]
+    public IActionResult GetForgeWrapper()
+    {
+        string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wwwroot", "forge-wrapper.jar");
+        if (!System.IO.File.Exists(filePath)) return NotFound();
+        return PhysicalFile(filePath, "application/java-archive", "forge-wrapper.jar");
+    }
 }
