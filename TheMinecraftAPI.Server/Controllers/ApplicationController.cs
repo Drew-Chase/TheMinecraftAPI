@@ -18,6 +18,6 @@ public class ApplicationController : ControllerBase
     [HttpGet()]
     public IActionResult Get()
     {
-        return Redirect("swagger/");
+        return Redirect("swagger/ui");
     }
 }
