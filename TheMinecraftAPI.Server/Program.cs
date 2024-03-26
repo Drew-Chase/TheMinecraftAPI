@@ -25,7 +25,7 @@ internal static class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(options =>
         {
-            options.SwaggerDoc("v1", new()
+            options.SwaggerDoc("v1", new OpenApiInfo
             {
                 Title = "The Minecraft API",
                 Version = "v1",
@@ -37,6 +37,7 @@ internal static class Program
                     Url = new Uri("https://raw.githubusercontent.com/Drew-Chase/TheMinecraftAPI/master/LICENSE")
                 }
             });
+
 
 #if RELEASE
             options.AddServer(new OpenApiServer()
@@ -105,6 +106,7 @@ internal static class Program
 
         Timer timer = new(TimeSpan.FromHours(24));
         timer.Elapsed += async (_, _) => await UpdateCache();
+        timer.Elapsed += (_, _) => ArchiveLogs();
 
 
         app.Run($"http://localhost:{ApplicationConfiguration.Instance.Port}");
@@ -122,16 +124,7 @@ internal static class Program
     private static void ConfigureLogging()
     {
         // Initialize Logging
-        string[] logs = Directory.GetFiles(Directories.Logs, "*.log");
-        if (logs.Length != 0)
-        {
-            using ZipArchive archive = ZipFile.Open(Path.Combine(Directories.Logs, $"logs-{DateTime.Now:MM-dd-yyyy HH-mm-ss.ffff}.zip"), ZipArchiveMode.Create);
-            foreach (string log in logs)
-            {
-                archive.CreateEntryFromFile(log, Path.GetFileName(log));
-                File.Delete(log);
-            }
-        }
+        ArchiveLogs();
 
         TimeSpan flushTime = TimeSpan.FromSeconds(30);
         Log.Logger = new LoggerConfiguration()
@@ -148,5 +141,17 @@ internal static class Program
             .WriteTo.File(Files.LatestLog, LogEventLevel.Information, buffered: true, flushToDiskInterval: flushTime)
             .WriteTo.File(Files.ErrorLog, LogEventLevel.Error, buffered: false)
             .CreateLogger();
+    }
+
+    private static void ArchiveLogs()
+    {
+        string[] logs = Directory.GetFiles(Directories.Logs, "*.log");
+        if (logs.Length == 0) return;
+        using ZipArchive archive = ZipFile.Open(Path.Combine(Directories.Logs, $"logs-{DateTime.Now:MM-dd-yyyy HH-mm-ss.ffff}.zip"), ZipArchiveMode.Create);
+        foreach (string log in logs)
+        {
+            archive.CreateEntryFromFile(log, Path.GetFileName(log));
+            File.Delete(log);
+        }
     }
 }
