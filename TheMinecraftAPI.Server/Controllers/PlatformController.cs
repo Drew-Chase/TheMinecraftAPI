@@ -4,6 +4,9 @@ using TheMinecraftAPI.Platforms.Structs;
 
 namespace TheMinecraftAPI.Server.Controllers;
 
+/// <summary>
+/// Controller for handling platform-related operations.
+/// </summary>
 [Route("platform")]
 [ApiController]
 public class PlatformController : ControllerBase
@@ -140,6 +143,13 @@ public class PlatformController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Retrieves the available versions of a specific project.
+    /// </summary>
+    /// <param name="id">The ID of the project.</param>
+    /// <param name="limit">The maximum number of versions to retrieve. Default is -1 (no limit).</param>
+    /// <param name="offset">The offset to start retrieving versions from. Default is 0 (start from the first version).</param>
+    /// <returns>An IActionResult with the retrieved PlatformVersion array.</returns>
     [HttpGet("{type}/project/{id}/versions"), ResponseCache(Duration = 3600)] // Cache the author image for 1 hour
     [ProducesResponseType(typeof(PlatformVersion[]), 200)]
     [ProducesResponseType(typeof(string), 400)]
@@ -157,6 +167,14 @@ public class PlatformController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Retrieves the versions of a project for a given platform.
+    /// </summary>
+    /// <param name="id">The ID of the project.</param>
+    /// <param name="options">The search options to filter the versions.</param>
+    /// <param name="limit">The maximum number of versions to retrieve. Set to -1 to retrieve all versions.</param>
+    /// <param name="offset">The number of versions to skip before starting to retrieve.</param>
+    /// <returns>An array of PlatformVersion objects representing the versions of the project.</returns>
     [HttpPost("{type}/project/{id}/versions"), ResponseCache(Duration = 3600)] // Cache the author image for 1 hour
     [ProducesResponseType(typeof(PlatformVersion[]), 200)]
     [ProducesResponseType(typeof(string), 400)]
@@ -174,6 +192,13 @@ public class PlatformController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Retrieves a specific version of a project.
+    /// </summary>
+    /// <param name="id">The ID of the project.</param>
+    /// <param name="versionId">The ID of the version.</param>
+    /// <returns>The requested version of the project.</returns>
+    /// <returns></returns>
     [HttpGet("{type}/project/{id}/version/{versionId}"), ResponseCache(Duration = 3600)] // Cache the author image for 1 hour
     [ProducesResponseType(typeof(PlatformVersion), 200)]
     [ProducesResponseType(typeof(string), 400)]
