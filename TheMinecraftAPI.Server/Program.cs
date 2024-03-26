@@ -3,7 +3,10 @@ using System.Net;
 using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
 using Serilog.Events;
+using TheMinecraftAPI.ModLoaders.Clients;
 using TheMinecraftAPI.Server.Data;
+using TheMinecraftAPI.Vanilla;
+using Timer = System.Timers.Timer;
 
 namespace TheMinecraftAPI.Server;
 
@@ -63,7 +66,24 @@ public static class Program
             }
         };
 
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+        UpdateCache();
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+
+        Timer timer = new(TimeSpan.FromHours(24));
+        timer.Elapsed += async (_, _) => await UpdateCache();
+
+
         app.Run($"http://localhost:{ApplicationConfiguration.Instance.Port}");
+    }
+
+    private static async Task UpdateCache()
+    {
+        long startTime = DateTime.Now.Ticks;
+        Log.Debug("Updating cache.");
+        var versionHistory = await MinecraftResources.GetVersions();
+        await ForgeClient.UpdateCacheFromWeb(versionHistory.Releases.Select(i => i.Id).ToArray());
+        Log.Debug("Cache took {TIME} to update", TimeSpan.FromTicks(DateTime.Now.Ticks - startTime));
     }
 
     private static void ConfigureLogging()
