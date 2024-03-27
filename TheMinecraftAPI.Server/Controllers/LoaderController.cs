@@ -21,7 +21,7 @@ public class LoaderController : ControllerBase
     };
 
     /// <summary>
-    /// Retrieves the available loader types.
+    /// Get the available loader types.
     /// </summary>
     /// <returns>An array of strings representing the available loader types.</returns>
     [HttpGet]
@@ -54,7 +54,7 @@ public class LoaderController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves the available loader installers for a given loader type.
+    /// Get the available loader installers for a given loader type.
     /// </summary>
     /// <param name="type">The type of loader. Values can be "fabric" or "forge".</param>
     /// <param name="gameVersion">Optional. The game version for which to retrieve installers.</param>
@@ -76,13 +76,13 @@ public class LoaderController : ControllerBase
     }
 
 
-    /// GetLoaderVersion method retrieves the information about a specific version of a mod loader.
-    /// Parameters:
-    /// - type: The type of mod loader (fabric or forge).
-    /// - version: The version of the mod loader to retrieve.
-    /// - gameVersion (optional): The game version for which to retrieve the mod loader version. If not provided, all versions will be retrieved.
-    /// Returns:
-    /// - IActionResult: The result of the operation.
+    /// <summary>
+    /// Get the installer for a specific version of a mod loader.
+    /// </summary>
+    /// <param name="type">The type of mod loader (fabric or forge).</param>
+    /// <param name="version">The version of the mod loader to retrieve.</param>
+    /// <param name="gameVersion">The game version for which to retrieve the mod loader version. If not provided, all versions will be retrieved.</param>
+    /// <returns>The result of the operation.</returns>
     [HttpGet("{type}/installer/{version}")]
     [ProducesResponseType(typeof(LoaderVersion[]), 200)]
     public async Task<IActionResult> GetLoaderVersion([FromRoute] string type, [FromRoute] string version, [FromQuery] string? gameVersion = null)
@@ -100,7 +100,7 @@ public class LoaderController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves the ForgeWrapper.jar file.
+    /// Downloads the Forge client side installer.
     /// </summary>
     /// <returns>The ForgeWrapper.jar file as a PhysicalFileResult.</returns>
     [HttpGet("forge/wrapper")]

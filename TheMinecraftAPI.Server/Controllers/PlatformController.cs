@@ -69,7 +69,7 @@ public class PlatformController : ControllerBase
 
 
     /// <summary>
-    /// Retrieves a project based on its ID and type.
+    /// Get a project based on its ID and type.
     /// </summary>
     /// <param name="id">The ID of the project.</param>
     /// <param name="type">The type of the project.</param>
@@ -92,7 +92,7 @@ public class PlatformController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves the icon of a project.
+    /// Get the icon of a project.
     /// </summary>
     /// <param name="id">The ID of the project.</param>
     /// <param name="type">The type of project.</param>
@@ -118,7 +118,7 @@ public class PlatformController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves the raw project icon for a specific project.
+    /// Get the project icon for a specific project as a base64 string.
     /// </summary>
     /// <param name="id">The id of the project.</param>
     /// <param name="type">The type of the project.</param>
@@ -144,7 +144,7 @@ public class PlatformController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves the available versions of a specific project.
+    /// Get the available versions of a specific project.
     /// </summary>
     /// <param name="id">The ID of the project.</param>
     /// <param name="limit">The maximum number of versions to retrieve. Default is -1 (no limit).</param>
@@ -168,7 +168,7 @@ public class PlatformController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves the versions of a project for a given platform.
+    /// Get the versions of a project for a given platform.
     /// </summary>
     /// <param name="id">The ID of the project.</param>
     /// <param name="options">The search options to filter the versions.</param>
@@ -193,7 +193,7 @@ public class PlatformController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves a specific version of a project.
+    /// Get a specific version of a project.
     /// </summary>
     /// <param name="id">The ID of the project.</param>
     /// <param name="versionId">The ID of the version.</param>

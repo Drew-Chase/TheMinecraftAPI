@@ -13,7 +13,7 @@ namespace TheMinecraftAPI.Server.Controllers;
 public class MinecraftController : ControllerBase
 {
     /// <summary>
-    /// Retrieves the status of a Minecraft server asynchronously.
+    /// Get the status of a Minecraft server.
     /// </summary>
     /// <param name="url">The URL of the Minecraft server.</param>
     /// <param name="port">The port number of the Minecraft server. Default value is 25565.</param>
@@ -44,7 +44,7 @@ public class MinecraftController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves the available versions of Minecraft.
+    /// Get the available versions of Minecraft.
     /// </summary>
     /// <param name="majorVersion">Optional filter for a specific major version.</param>
     /// <param name="snapshots">Indicates if only snapshot versions should be included.</param>
@@ -57,7 +57,7 @@ public class MinecraftController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves the Java Runtime Environment (JRE) binaries for the specified operating system asynchronously.
+    /// Get the Java Runtime Environment (JRE) binaries for the specified operating system.
     /// </summary>
     /// <param name="operatingSystem">The operating system to retrieve the JRE binaries for.
     /// Leave empty or specify "platforms" to retrieve the list of supported platforms.</param>
@@ -101,7 +101,7 @@ public class MinecraftController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves the assets of a specific Minecraft version.
+    /// Get the assets of a specific Minecraft version.
     /// </summary>
     /// <param name="version">The version of Minecraft.</param>
     /// <returns>A task representing the asynchronous operation. The task result is an array of objects representing the assets.</returns>
@@ -124,7 +124,7 @@ public class MinecraftController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves the available JAR files for a specific version of Minecraft.
+    /// Get the available JAR files for a specific version of Minecraft.
     /// </summary>
     /// <param name="version">The version of Minecraft.</param>
     /// <returns>An object containing the list of available JAR files.</returns>
