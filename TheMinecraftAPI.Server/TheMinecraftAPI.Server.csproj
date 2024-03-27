@@ -14,11 +14,11 @@
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
       <DebugType>full</DebugType>
-      <DocumentationFile>bin\Debug\TheMinecraftAPI.Server.xml</DocumentationFile>
+      <DocumentationFile>bin\Debug\Server.xml</DocumentationFile>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
       <DebugType>none</DebugType>
-      <DocumentationFile>bin\Release\TheMinecraftAPI.Server.xml</DocumentationFile>
+      <DocumentationFile>bin\Release\Server.xml</DocumentationFile>
     </PropertyGroup>
 
     <ItemGroup>

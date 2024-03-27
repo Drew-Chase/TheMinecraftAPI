@@ -25,6 +25,10 @@ internal static class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(options =>
         {
+            var xmlFilePath = Path.Combine(AppContext.BaseDirectory, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml");
+            if (File.Exists(xmlFilePath))
+                options.IncludeXmlComments(xmlFilePath);
+            Console.WriteLine(xmlFilePath);
             options.SwaggerDoc("v1", new OpenApiInfo
             {
                 Title = "The Minecraft API",
@@ -46,10 +50,6 @@ internal static class Program
                 Description = "The Minecraft API",
             });
 #endif
-
-            var xmlFilePath = Path.Combine(AppContext.BaseDirectory, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml");
-            if (File.Exists(xmlFilePath))
-                options.IncludeXmlComments(xmlFilePath);
         });
         builder.Services.AddSerilog();
         builder.Services.AddMvc(options => options.EnableEndpointRouting = false);
